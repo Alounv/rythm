@@ -11,6 +11,9 @@ const EXAMPLE = `
 6 gui, 2 co, 2 m'i, 2 ri, 2 de, 2 di,
 4 pa, 2 ce, 2, 2 lu, 2 ngo, 2 le, 3 vie, 1 del,
 4 cie, 4 lo, 2, 2 io, 2 ti, 2 se,
+8 gui, 1.5 co, 1.5 mu, 1.5 na, 2 mi, 2 ca,
+4 fa, 4 ce, 1.5, 1.5 de, 1.5 la, 1.5 no, 1.5 te, 1.5 nel,
+4 ve, 4 lo,
 `;
 
 const DEFAULT_BLACK = 1200;
@@ -18,7 +21,7 @@ const DEFAULT_BLACK = 1200;
 export default component$(() => {
   const textInput = useSignal<string>(EXAMPLE);
   const blackDuration = useSignal<string>(`${DEFAULT_BLACK}`);
-  const tick = useComputed$(() => parseInt(blackDuration.value) / 4);
+  const tick = useComputed$(() => parseInt(blackDuration.value) / 8);
   const progression = useSignal<number>(0);
   const isPlaying = useSignal<boolean>(false);
   const sequence = useComputed$(() => {
@@ -27,12 +30,14 @@ export default component$(() => {
         .split(",")
         .map((v) => v.trim())
         .filter(Boolean);
-      return notes.map((note, i) => {
-        const [value, word] = note.split(" ");
-        const duration = parseInt(value);
-        const isLast = i === notes.length - 1;
-        return { duration, word, isLast };
-      });
+      return notes
+        .map((note, i) => {
+          const [value, word] = note.split(" ");
+          const duration = parseFloat(value) * 2;
+          const isLast = i === notes.length - 1;
+          return { duration, word, isLast };
+        })
+        .filter((n) => !isNaN(n.duration));
     });
   });
 
@@ -134,7 +139,7 @@ export default component$(() => {
                       return (
                         <div
                           key={i}
-                          class={`relative h-2 w-4 bg-gray-900 dark:bg-white overflow-hidden ${wordCls}`}
+                          class={`relative h-2 w-2 bg-gray-900 dark:bg-white overflow-hidden ${wordCls}`}
                         >
                           <div
                             class={`
