@@ -167,12 +167,23 @@ export default component$(() => {
           })}
         </div>
 
-        <button
-          class="mt-4"
-          onClick$={() => (isPlaying.value = !isPlaying.value)}
-        >
-          {isPlaying.value ? "pause" : "play"}
-        </button>
+        <div class="flex gap-4">
+          <button
+            class="mt-4"
+            onClick$={() => (isPlaying.value = !isPlaying.value)}
+          >
+            {isPlaying.value ? "pause" : "play"}
+          </button>
+          <button
+            class="mt-4"
+            onClick$={() => {
+              isPlaying.value = false;
+              progression.value = 0;
+            }}
+          >
+            {"reset"}
+          </button>
+        </div>
       </div>
     </div>
   );
