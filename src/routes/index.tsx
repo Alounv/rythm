@@ -12,10 +12,12 @@ const EXAMPLE = `
 2 lu, 2 ngo, 2 le, 3 vie, 1 del, 4 cie, 4 lo
 `;
 
-const TICK = 200; // tick duration in milliseconds
+const DEFAULT_BLACK = 1200;
 
 export default component$(() => {
   const textInput = useSignal<string>(EXAMPLE);
+  const blackDuration = useSignal<string>(`${DEFAULT_BLACK}`);
+  const tick = useComputed$(() => parseInt(blackDuration.value) / 4);
   const progression = useSignal<number>(0);
   const isPlaying = useSignal<boolean>(false);
   const sequence = useComputed$(() => {
@@ -44,7 +46,7 @@ export default component$(() => {
         clearInterval(interval);
         isPlaying.value = false;
       }
-    }, TICK);
+    }, tick.value);
 
     if (!isPlaying.value) {
       clearInterval(interval);
@@ -73,7 +75,7 @@ export default component$(() => {
       </div>
 
       <label
-        for="message"
+        for="score"
         class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
       >
         Your input
@@ -86,6 +88,20 @@ export default component$(() => {
         bind:value={textInput}
       />
 
+      <label
+        for="duration"
+        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+      >
+        Duration of a black note (4)
+      </label>
+
+      <input
+        id="duration"
+        type="number"
+        class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        bind:value={blackDuration}
+      />
+
       <div class="font-medium text-sm">Training</div>
 
       <div>
@@ -96,6 +112,8 @@ export default component$(() => {
               .reduce((acc, v) => acc + v.duration, 0);
 
             const currentProgression = progression.value - previousDuration;
+            const isWordPassed = currentProgression > duration;
+            const isWordCurrent = currentProgression > 0;
 
             return (
               <div key={i} class="flex flex-col items-center">
@@ -112,7 +130,7 @@ export default component$(() => {
                         <div
                           class={`
                           absolute top-0 bottom-0 left-0 right-0 
-                          transition duration-${TICK} -translate-x-full ${currentCls}
+                          transition duration-[${tick.value}ms] ease-[linear] -translate-x-full ${currentCls}
                           bg-sky-100 dark:bg-sky-800
                           `}
                         />
@@ -120,11 +138,19 @@ export default component$(() => {
                     );
                   })}
                 </div>
-                <div>{word}</div>
+                <div
+                  class={`transition
+                  ${isWordPassed ? "opacity-40" : ""}
+                  ${isWordCurrent ? "font-bold" : ""}
+                  `}
+                >
+                  {word}
+                </div>
               </div>
             );
           })}
         </div>
+
         <button
           class="mt-4"
           onClick$={() => (isPlaying.value = !isPlaying.value)}
