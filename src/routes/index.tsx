@@ -1,4 +1,9 @@
-import { component$, useComputed$, useSignal } from "@builder.io/qwik";
+import {
+  component$,
+  useComputed$,
+  useSignal,
+  useTask$,
+} from "@builder.io/qwik";
 import type { DocumentHead } from "@builder.io/qwik-city";
 
 const EXAMPLE = `
@@ -7,15 +12,45 @@ const EXAMPLE = `
 2 lu, 2 ngo, 2 le, 3 vie, 1 del, 4 cie, 4 lo
 `;
 
+const TICK = 200; // tick duration in milliseconds
+
 export default component$(() => {
   const textInput = useSignal<string>(EXAMPLE);
-
+  const progression = useSignal<number>(0);
+  const isPlaying = useSignal<boolean>(false);
   const sequence = useComputed$(() => {
     return textInput.value.split(",").map((note) => {
       const [value, word] = note.trim().split(" ");
       const duration = parseInt(value);
       return { duration, word };
     });
+  });
+
+  useTask$(({ track }) => {
+    track(() => isPlaying.value);
+
+    const totalDuration = sequence.value.reduce(
+      (acc, v) => acc + v.duration,
+      0
+    );
+
+    if (isPlaying.value && progression.value > totalDuration) {
+      progression.value = 0;
+    }
+
+    const interval = setInterval(() => {
+      progression.value++;
+      if (progression.value > totalDuration) {
+        clearInterval(interval);
+        isPlaying.value = false;
+      }
+    }, TICK);
+
+    if (!isPlaying.value) {
+      clearInterval(interval);
+    }
+
+    return () => clearInterval(interval);
   });
 
   return (
@@ -49,24 +84,53 @@ export default component$(() => {
         rows={4}
         class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
         bind:value={textInput}
-      ></textarea>
+      />
 
       <div class="font-medium text-sm">Training</div>
 
       <div>
         <div class="flex items-start gap-2 flex-wrap">
-          {sequence.value.map(({ duration, word }, i) => (
-            <div
-              key={i}
-              class={`flex flex-col items-center ${
-                !word ? "opacity-40" : "font-bold"
-              }`}
-            >
-              <div>{new Array(duration).fill("_")}</div>
-              <div>{word}</div>
-            </div>
-          ))}
+          {sequence.value.map(({ duration, word }, i) => {
+            const previousDuration = sequence.value
+              .slice(0, i)
+              .reduce((acc, v) => acc + v.duration, 0);
+
+            const currentProgression = progression.value - previousDuration;
+
+            return (
+              <div key={i} class="flex flex-col items-center">
+                <div class="flex">
+                  {new Array(duration).fill("").map((_, i) => {
+                    const isCurrent = i < currentProgression;
+                    const wordCls = !word ? "opacity-40" : "font-bold";
+                    const currentCls = isCurrent ? "translate-x-0" : "";
+                    return (
+                      <div
+                        key={i}
+                        class={`relative h-2 w-4 bg-gray-900 dark:bg-white overflow-hidden ${wordCls}`}
+                      >
+                        <div
+                          class={`
+                          absolute top-0 bottom-0 left-0 right-0 
+                          transition duration-${TICK} -translate-x-full ${currentCls}
+                          bg-sky-100 dark:bg-sky-800
+                          `}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+                <div>{word}</div>
+              </div>
+            );
+          })}
         </div>
+        <button
+          class="mt-4"
+          onClick$={() => (isPlaying.value = !isPlaying.value)}
+        >
+          {isPlaying.value ? "pause" : "play"}
+        </button>
       </div>
     </div>
   );
