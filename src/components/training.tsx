@@ -6,6 +6,13 @@ import {
   useTask$,
 } from "@builder.io/qwik";
 
+enum S {
+  Pressed = "_",
+  Press = "P",
+  Released = " ",
+  Release = "R",
+}
+
 export const Training = component$(
   ({
     textInput,
@@ -39,10 +46,39 @@ export const Training = component$(
       });
     });
 
+    const targets = useComputed$(() => {
+      return sequence.value.reduce<S[][]>((acc, v) => {
+        for (let i = 0; i < v.duration; i++) {
+          const isFirst = i === 0;
+          const isLast = i === v.duration - 1;
+          const isSilence = !v.word;
+          const status: S[] = (() => {
+            if (isSilence) {
+              if (isFirst) return [S.Release, S.Released];
+              if (isLast) return [S.Released, S.Press];
+              return [S.Released];
+            }
+
+            if (isFirst) return [S.Press, S.Pressed];
+            if (isLast) return [S.Pressed, S.Release];
+            return [S.Pressed];
+          })();
+
+          acc.push(status);
+        }
+        return acc;
+      }, []);
+    });
+
     const tick = useComputed$(() =>
       Math.floor(parseInt(blackDuration.value) / 12)
     );
 
+    const currentTargets = useComputed$(() => {
+      return targets.value[progression.value];
+    });
+
+    console.log(currentTargets.value);
     // -- effects
     useTask$(({ track, cleanup }) => {
       track(() => isPlaying.value);
