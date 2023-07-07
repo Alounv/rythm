@@ -1,14 +1,17 @@
-import { Signal, component$, useVisibleTask$ } from "@builder.io/qwik";
+import type { Signal } from "@builder.io/qwik";
+import { component$, useVisibleTask$ } from "@builder.io/qwik";
 
 export const ScoreInput = component$(
   ({ textInput }: { textInput: Signal<string> }) => {
     useVisibleTask$(() => {
       textInput.value = getStorage("textInput") || EXAMPLE;
     });
+
     useVisibleTask$(({ track, cleanup }) => {
       track(() => textInput.value);
       cleanup(() => setStorage("textInput", textInput.value));
     });
+
     return (
       <>
         <label
@@ -20,7 +23,7 @@ export const ScoreInput = component$(
 
         <textarea
           id="score"
-          rows={4}
+          rows={16}
           class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
           bind:value={textInput}
         />
@@ -52,8 +55,8 @@ export const EXAMPLE = `
 4 la, 2 ria, 1 nel, 1 pro, 4 fu, 2 mo, 2 del,
 4 fio, 4 ri, 4, 3 e, 1 fu,
 4 pie, 2 na, 2 la, 2 stan, 2 za, 2 so, 2 li,
-4 ta, 2 ria, 2 Di, 2 te, 2 dei, 2 tuoi, 1, 1 splen,
-4 do, 4 ri, 4, 4,
+4 ta, 2 ria, 2 Di, 2 te, 2 dei, 2 tuoi, 1, 1 sple,
+4 ndo, 4 ri, 4, 4,
 
 16, 
 16, 
@@ -63,14 +66,14 @@ export const EXAMPLE = `
 4 pi, 2 to, 2 al, 2 suon, 2 de, 2 la, 2 tua,
 4 vo, 4 ce, 2t, 2t lu, 2t nga, 2t me, 2t nte, 2t so,
 6 gnai, 2, 2 E, 2 de, 2 la,
-6 te, 2 ra, 1 ogni, 1 ia, 2 fa, 2 no, 2 o, 2 gni
+4 te, 2 ra, 1 ogni, 1 ia, 2 fa, 2 no, 2 o, 2 gni
 4 cro, 4 ce, 2t, 2t in, 2t quel, 2t gio, 2t rno, 2t scor,
 6 dai, 2, 4, 4,
 8 Tor, 2 na, 1, 2t ca, 2t ro, 2t ide,
 12 al, 4,
 4 to, 2 rna, 2 uni, 2t stan, 2t teA, 2t sor, 2t ri, 2t der, 2t miAn,
 8 co, 2 ra, 2, 2 E, 2 a,
-2 me, 2 ri, 2 splen, 2 de, 2 ra, 2 nel, 2 tuo, 2 sem,
+2 me, 2 ri, 2 sple, 2 nde, 2 ra, 2 nel, 2 tuo, 2 sem,
 4 bian, 4 te, 2t U, 2t na, 2t no, 2 vel, 2 lau,
 8 ro, 2 ra, 2 u, 2 na, 2 no, 
 4 vel, 2 la, 2 au,  8 rooo,
