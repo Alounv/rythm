@@ -9,19 +9,22 @@ import type { DocumentHead } from "@builder.io/qwik-city";
 const EXAMPLE = `
 4, 4, 2, 2 io, 2 ti, 2 se,
 6 gui, 2 co, 2 m'i, 2 ri, 2 de, 2 di,
-4 pa, 2 ce, 2, 1.5 lu, 1.5 ngo, 1.5 le, 3 vie, 1 del,
+4 pa, 2 ce, 2, 2t lu, 2t ngo, 2t le, 3 vie, 1 del,
 4 cie, 4 lo, 2, 2 io, 2 ti, 2 se,
-8 gui, 1.5 co, 1.5 mu, 1.5 na, 2 mi, 2 ca,
-4 fa, 4 ce, 1.5, 1.5 de, 1.5 la, 1.5 no, 1.5 te, 1.5 nel,
+8 gui, 2t co, 2t mu, 2t na, 2 mi, 2 ca,
+4 fa, 4 ce, 2t, 2t de, 2t la, 2t no, 2t te, 2t nel,
 4 ve, 4 lo,
 `;
 
-const DEFAULT_BLACK = 1200;
+const DEFAULT_BLACK = 1000;
+// duration-
 
 export default component$(() => {
   const textInput = useSignal<string>(EXAMPLE);
   const blackDuration = useSignal<string>(`${DEFAULT_BLACK}`);
-  const tick = useComputed$(() => parseInt(blackDuration.value) / 8);
+  const tick = useComputed$(() =>
+    Math.floor(parseInt(blackDuration.value) / 12)
+  );
   const progression = useSignal<number>(0);
   const isPlaying = useSignal<boolean>(false);
   const sequence = useComputed$(() => {
@@ -33,7 +36,10 @@ export default component$(() => {
       return notes
         .map((note, i) => {
           const [value, word] = note.split(" ");
-          const duration = parseFloat(value) * 2;
+          const isTriplet = value.includes("t");
+          const duration = isTriplet
+            ? parseInt(value.replace("t", "")) * 2
+            : parseInt(value) * 3;
           const isLast = i === notes.length - 1;
           return { duration, word, isLast };
         })
@@ -139,14 +145,11 @@ export default component$(() => {
                       return (
                         <div
                           key={i}
-                          class={`relative h-2 w-3 bg-gray-900 dark:bg-white overflow-hidden ${wordCls}`}
+                          class={`relative h-2 w-2 bg-gray-900 dark:bg-white overflow-hidden ${wordCls}`}
                         >
                           <div
-                            class={`
-                          absolute top-0 bottom-0 left-0 right-0 
-                          transition duration-[${tick.value}ms] ease-[linear] -translate-x-full ${currentCls}
-                          bg-sky-100 dark:bg-sky-800
-                          `}
+                            class={`absolute top-0 bottom-0 left-0 right-0 -translate-x-full ${currentCls} bg-sky-400 dark:bg-sky-800 transition ease-[linear]`}
+                            style={{ transitionDuration: `${tick.value}ms` }}
                           />
                         </div>
                       );
