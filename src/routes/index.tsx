@@ -9,7 +9,7 @@ import type { DocumentHead } from "@builder.io/qwik-city";
 const EXAMPLE = `
 4, 4, 2, 2 io, 2 ti, 2 se,
 6 gui, 2 co, 2 m'i, 2 ri, 2 de, 2 di,
-4 pa, 2 ce, 2, 2 lu, 2 ngo, 2 le, 3 vie, 1 del,
+4 pa, 2 ce, 2, 1.5 lu, 1.5 ngo, 1.5 le, 3 vie, 1 del,
 4 cie, 4 lo, 2, 2 io, 2 ti, 2 se,
 8 gui, 1.5 co, 1.5 mu, 1.5 na, 2 mi, 2 ca,
 4 fa, 4 ce, 1.5, 1.5 de, 1.5 la, 1.5 no, 1.5 te, 1.5 nel,
@@ -134,12 +134,12 @@ export default component$(() => {
                   <div class="flex">
                     {new Array(duration).fill("").map((_, i) => {
                       const isCurrent = i < currentProgression;
-                      const wordCls = !word ? "opacity-40" : "font-bold";
+                      const wordCls = !word ? "opacity-20" : "";
                       const currentCls = isCurrent ? "translate-x-0" : "";
                       return (
                         <div
                           key={i}
-                          class={`relative h-2 w-2 bg-gray-900 dark:bg-white overflow-hidden ${wordCls}`}
+                          class={`relative h-2 w-3 bg-gray-900 dark:bg-white overflow-hidden ${wordCls}`}
                         >
                           <div
                             class={`
@@ -154,8 +154,8 @@ export default component$(() => {
                   </div>
                   <div
                     class={`transition
-                  ${isWordPassed ? "opacity-40" : ""}
                   ${isWordCurrent ? "font-bold" : ""}
+                  ${isWordPassed ? "opacity-20 font-normal" : ""}
                   `}
                   >
                     {word}
