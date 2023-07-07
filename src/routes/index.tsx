@@ -187,7 +187,14 @@ export default component$(() => {
 
             return (
               <>
-                <div key={i} class="flex flex-col items-center">
+                <div
+                  key={i}
+                  class="flex flex-col items-center"
+                  onClick$={() => {
+                    progression.value = previousDuration;
+                    isPlaying.value = !isPlaying.value;
+                  }}
+                >
                   <div class="flex">
                     {new Array(duration).fill("").map((_, i) => {
                       const isCurrent = i < currentProgression;
