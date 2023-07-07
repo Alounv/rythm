@@ -1,4 +1,4 @@
-import { Signal } from "@builder.io/qwik";
+import type { Signal } from "@builder.io/qwik";
 
 export const Tempo = ({ blackDuration }: { blackDuration: Signal<string> }) => {
   return (
@@ -7,7 +7,7 @@ export const Tempo = ({ blackDuration }: { blackDuration: Signal<string> }) => {
         for="duration"
         class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
       >
-        Duration of a black note (4)
+        Duration of a black note in milliseconds
       </label>
 
       <input
