@@ -7,9 +7,10 @@ import {
 import type { DocumentHead } from "@builder.io/qwik-city";
 
 const EXAMPLE = `
-4, 4, 2, 2 io, 2 ti, 2 se, 6 gui,
-2 co, 2 m'i, 2 ri, 2 de, 2 di, 4 pa, 2 ce, 2,
-2 lu, 2 ngo, 2 le, 3 vie, 1 del, 4 cie, 4 lo
+4, 4, 2, 2 io, 2 ti, 2 se,
+6 gui, 2 co, 2 m'i, 2 ri, 2 de, 2 di,
+4 pa, 2 ce, 2, 2 lu, 2 ngo, 2 le, 3 vie, 1 del,
+4 cie, 4 lo, 2, 2 io, 2 ti, 2 se,
 `;
 
 const DEFAULT_BLACK = 1200;
@@ -21,14 +22,21 @@ export default component$(() => {
   const progression = useSignal<number>(0);
   const isPlaying = useSignal<boolean>(false);
   const sequence = useComputed$(() => {
-    return textInput.value.split(",").map((note) => {
-      const [value, word] = note.trim().split(" ");
-      const duration = parseInt(value);
-      return { duration, word };
+    return textInput.value.split("\n").flatMap((line) => {
+      const notes = line
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean);
+      return notes.map((note, i) => {
+        const [value, word] = note.split(" ");
+        const duration = parseInt(value);
+        const isLast = i === notes.length - 1;
+        return { duration, word, isLast };
+      });
     });
   });
 
-  useTask$(({ track }) => {
+  useTask$(({ track, cleanup }) => {
     track(() => isPlaying.value);
 
     const totalDuration = sequence.value.reduce(
@@ -40,19 +48,19 @@ export default component$(() => {
       progression.value = 0;
     }
 
-    const interval = setInterval(() => {
+    const id = setInterval(() => {
       progression.value++;
       if (progression.value > totalDuration) {
-        clearInterval(interval);
+        clearInterval(id);
         isPlaying.value = false;
       }
     }, tick.value);
 
     if (!isPlaying.value) {
-      clearInterval(interval);
+      clearInterval(id);
     }
 
-    return () => clearInterval(interval);
+    cleanup(() => clearInterval(id));
   });
 
   return (
@@ -106,7 +114,7 @@ export default component$(() => {
 
       <div>
         <div class="flex items-start gap-2 flex-wrap">
-          {sequence.value.map(({ duration, word }, i) => {
+          {sequence.value.map(({ duration, word, isLast }, i) => {
             const previousDuration = sequence.value
               .slice(0, i)
               .reduce((acc, v) => acc + v.duration, 0);
@@ -116,37 +124,40 @@ export default component$(() => {
             const isWordCurrent = currentProgression > 0;
 
             return (
-              <div key={i} class="flex flex-col items-center">
-                <div class="flex">
-                  {new Array(duration).fill("").map((_, i) => {
-                    const isCurrent = i < currentProgression;
-                    const wordCls = !word ? "opacity-40" : "font-bold";
-                    const currentCls = isCurrent ? "translate-x-0" : "";
-                    return (
-                      <div
-                        key={i}
-                        class={`relative h-2 w-4 bg-gray-900 dark:bg-white overflow-hidden ${wordCls}`}
-                      >
+              <>
+                <div key={i} class="flex flex-col items-center">
+                  <div class="flex">
+                    {new Array(duration).fill("").map((_, i) => {
+                      const isCurrent = i < currentProgression;
+                      const wordCls = !word ? "opacity-40" : "font-bold";
+                      const currentCls = isCurrent ? "translate-x-0" : "";
+                      return (
                         <div
-                          class={`
+                          key={i}
+                          class={`relative h-2 w-4 bg-gray-900 dark:bg-white overflow-hidden ${wordCls}`}
+                        >
+                          <div
+                            class={`
                           absolute top-0 bottom-0 left-0 right-0 
                           transition duration-[${tick.value}ms] ease-[linear] -translate-x-full ${currentCls}
                           bg-sky-100 dark:bg-sky-800
                           `}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-                <div
-                  class={`transition
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div
+                    class={`transition
                   ${isWordPassed ? "opacity-40" : ""}
                   ${isWordCurrent ? "font-bold" : ""}
                   `}
-                >
-                  {word}
+                  >
+                    {word}
+                  </div>
                 </div>
-              </div>
+                {isLast ? <div class="basis-full" /> : ""}
+              </>
             );
           })}
         </div>
