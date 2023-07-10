@@ -107,6 +107,7 @@ export const Training = component$(
       cleanup(() => clearInterval(id));
     });
 
+    let cumulatedDuration = 0;
     return (
       <>
         <div class="font-medium text-sm">Training</div>
@@ -115,9 +116,8 @@ export const Training = component$(
           <div class="text-sm opacity-60">Click somewhere to start</div>
           <div class="flex items-start gap-2 flex-wrap">
             {sequence.value.map(({ duration, word, isLast }, i) => {
-              const previousDuration = sequence.value
-                .slice(0, i)
-                .reduce((acc, v) => acc + v.duration, 0);
+              cumulatedDuration += duration;
+              const previousDuration = cumulatedDuration - duration;
               return (
                 <Note
                   key={i}
@@ -160,9 +160,8 @@ const Note = ({
   i: number;
   tick: number;
 }) => {
-  const currentProgression = progression.value - previousDuration;
-  const isWordPassed = currentProgression > duration;
-  const isWordCurrent = currentProgression > 0;
+  const isPassed = progression.value > duration + previousDuration;
+  const isCurrent = !isPassed && progression.value > previousDuration;
 
   return (
     <>
@@ -175,15 +174,20 @@ const Note = ({
         }}
       >
         <div class="flex">
-          {new Array(duration).fill("").map((_, i) => {
-            const isCurrent = i < currentProgression;
-            return <Tick key={i} {...{ isCurrent, word, tick }} />;
-          })}
+          <NoteBar
+            {...{
+              isCurrent,
+              isPassed,
+              duration,
+              word,
+              tick,
+            }}
+          />
         </div>
 
         <div
-          class={`transition ${isWordCurrent ? "font-bold" : ""} ${
-            isWordPassed ? "opacity-20 font-normal" : ""
+          class={`transition ${isCurrent ? "font-bold" : ""} ${
+            isPassed ? "opacity-20 font-normal" : ""
           }`}
         >
           {word}
@@ -195,24 +199,35 @@ const Note = ({
   );
 };
 
-const Tick = ({
+const NoteBar = ({
   isCurrent,
+  isPassed,
+  duration,
   word,
   tick,
 }: {
+  duration: number;
   isCurrent: boolean;
+  isPassed: boolean;
   word: string;
   tick: number;
 }) => {
   const wordCls = !word ? "opacity-20" : "";
-  const currentCls = isCurrent ? "translate-x-0" : "";
+  const passedCls = isPassed ? `translate-x-0` : "";
+  const currentCls = isCurrent ? "transition ease-[linear] translate-x-0" : "";
+  if (word === "gui") {
+    console.log(isCurrent, isPassed, duration, word, tick);
+  }
   return (
     <div
-      class={`relative h-2 w-2 bg-gray-900 dark:bg-white overflow-hidden ${wordCls}`}
+      class={`relative h-2 bg-gray-900 dark:bg-white overflow-hidden ${wordCls}`}
+      style={{ width: `${duration / 2}rem` }}
     >
       <div
-        class={`absolute top-0 bottom-0 left-0 right-0 -translate-x-full ${currentCls} bg-sky-400 dark:bg-sky-800 transition ease-[linear]`}
-        style={{ transitionDuration: `${tick}ms` }}
+        class={`absolute top-0 bottom-0 left-0 right-0 -translate-x-full bg-sky-400 dark:bg-sky-800 ${passedCls} ${currentCls}`}
+        style={{
+          ...(isCurrent ? { transitionDuration: `${tick * duration}ms` } : {}),
+        }}
       />
     </div>
   );
